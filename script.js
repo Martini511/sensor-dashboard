@@ -33,7 +33,7 @@ async function connectSerial() {
 
     // Port öffnen
     // ⚠️ BaudRate muss mit Board übereinstimmen!
-    await port.open({ baudRate: 9600 });
+    await port.open({ baudRate: 115200 });
 
     updateStatus('Verbunden', 'connected');
     updateConnectButton(true);
