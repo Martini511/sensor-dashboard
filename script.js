@@ -1,4 +1,4 @@
-// ─── Button Namen (Standard Gamepad Layout) ───────────
+// ─── Button Namen ─────────────────────────────────────
 
 const BUTTON_NAMES = {
   0:  'A / ✕',
@@ -29,47 +29,104 @@ const AXIS_NAMES = {
 
 // ─── Variablen ────────────────────────────────────────
 
-let animationId    = null;
-let activeGamepad  = null;
+let animationId     = null;
+let activeGamepad   = null;
 let lastButtonState = [];
-let logEnabled     = true;
+let initialized     = false;
+
+// ─── Beim Laden sofort suchen ─────────────────────────
+
+window.addEventListener('load', () => {
+  // Sofort prüfen
+  scanForGamepads();
+
+  // Alle 1000ms erneut prüfen
+  // falls Controller erst später verbunden
+  setInterval(scanForGamepads, 1000);
+});
 
 // ─── Gamepad Events ───────────────────────────────────
 
 window.addEventListener('gamepadconnected', (event) => {
-  const gp = event.gamepad;
-  console.log('Controller verbunden:', gp);
+  console.log('gamepadconnected Event:', event.gamepad);
+  initController(event.gamepad);
+});
+
+window.addEventListener('gamepaddisconnected', (event) => {
+  console.log('gamepaddisconnected Event:', event.gamepad);
+  
+  if (activeGamepad === event.gamepad.index) {
+    handleDisconnect();
+  }
+});
+
+// ─── Aktiv nach Gamepads suchen ───────────────────────
+
+function scanForGamepads() {
+  const gamepads = navigator.getGamepads();
+
+  for (let i = 0; i < gamepads.length; i++) {
+    const gp = gamepads[i];
+
+    // Prüfen ob echter Controller
+    if (gp !== null && gp.axes.length > 0) {
+
+      // Noch nicht initialisiert?
+      if (activeGamepad === null) {
+        console.log('Controller gefunden:', gp.id);
+        initController(gp);
+        return;
+      }
+    }
+  }
+}
+
+// ─── Controller initialisieren ────────────────────────
+
+function initController(gp) {
+  // Verhindere doppelte Initialisierung
+  if (initialized && activeGamepad === gp.index) return;
+
+  console.log('Initialisiere Controller:', gp.id);
+  console.log('Buttons:', gp.buttons.length);
+  console.log('Achsen:', gp.axes.length);
 
   activeGamepad = gp.index;
+  initialized   = true;
 
-  // UI anzeigen
+  // UI aufbauen
   showCards();
   updateControllerInfo(gp);
   createButtonElements(gp.buttons.length);
   createAxesBars(gp.axes.length);
 
-  // Status aktualisieren
+  // Status setzen
   setStatus(true, `Verbunden: ${gp.id}`);
-  addLog(`✅ Controller verbunden: ${gp.id}`);
-  addLog(`   Tasten: ${gp.buttons.length} | Achsen: ${gp.axes.length}`);
+  addLog(`✅ Controller: ${gp.id}`);
+  addLog(`   Index: ${gp.index}`);
+  addLog(`   Tasten: ${gp.buttons.length}`);
+  addLog(`   Achsen: ${gp.axes.length}`);
 
   // Game Loop starten
-  startGameLoop();
-});
+  if (!animationId) startGameLoop();
+}
 
-window.addEventListener('gamepaddisconnected', (event) => {
+// ─── Disconnect behandeln ─────────────────────────────
+
+function handleDisconnect() {
   addLog('❌ Controller getrennt');
   setStatus(false, 'Controller getrennt');
-  activeGamepad = null;
 
-  // Game Loop stoppen
+  activeGamepad = null;
+  initialized   = false;
+
   if (animationId) {
     cancelAnimationFrame(animationId);
     animationId = null;
   }
 
   hideCards();
-});
+}
 
 // ─── Game Loop ────────────────────────────────────────
 
@@ -77,20 +134,17 @@ function startGameLoop() {
   function loop() {
     if (activeGamepad === null) return;
 
-    // Aktuellen Gamepad Status holen
-    // ⚠️ Muss in Loop neu gelesen werden!
     const gamepads = navigator.getGamepads();
     const gp       = gamepads[activeGamepad];
 
-    if (!gp) return;
+    if (!gp) {
+      handleDisconnect();
+      return;
+    }
 
-    // Buttons aktualisieren
     updateButtons(gp.buttons);
-
-    // Achsen aktualisieren
     updateAxes(gp.axes);
 
-    // Nächsten Frame anfordern
     animationId = requestAnimationFrame(loop);
   }
 
@@ -107,8 +161,8 @@ function updateButtons(buttons) {
     const isPressed = button.pressed;
     const value     = button.value.toFixed(2);
 
-    // Visuell aktualisieren
-    element.querySelector('.btn-value').textContent = value;
+    element.querySelector('.btn-value')
+           .textContent = value;
 
     if (isPressed) {
       element.classList.add('pressed');
@@ -116,18 +170,15 @@ function updateButtons(buttons) {
       element.classList.remove('pressed');
     }
 
-    // Log bei Statusänderung
+    // Log bei Änderung
     if (lastButtonState[index] !== isPressed) {
       lastButtonState[index] = isPressed;
-
-      if (logEnabled) {
-        const name = BUTTON_NAMES[index] || `Btn ${index}`;
-        addLog(
-          isPressed
-            ? `🔵 ${name} gedrückt (${value})`
-            : `⚪ ${name} losgelassen`
-        );
-      }
+      const name = BUTTON_NAMES[index] || `Btn ${index}`;
+      addLog(
+        isPressed
+          ? `🔵 ${name} gedrückt`
+          : `⚪ ${name} losgelassen`
+      );
     }
   });
 }
@@ -136,23 +187,20 @@ function updateButtons(buttons) {
 
 function updateAxes(axes) {
   axes.forEach((value, index) => {
-    // Wert anzeigen
+    // Wert Text
     const valueEl = document.getElementById(`axis-${index}`);
     if (valueEl) {
       valueEl.textContent = value.toFixed(2);
     }
 
-    // Balken aktualisieren
+    // Balken
     const fill = document.getElementById(`axis-fill-${index}`);
     if (fill) {
-      // Wert von -1 bis 1 auf Balken mappen
-      const percent = Math.abs(value) * 50;
-      fill.style.width = percent + '%';
-      fill.style.left  = value >= 0
+      const percent      = Math.abs(value) * 50;
+      fill.style.width   = percent + '%';
+      fill.style.left    = value >= 0
         ? '50%'
         : (50 - percent) + '%';
-
-      // Farbe je nach Richtung
       fill.style.background = value > 0.1
         ? '#58a6ff'
         : value < -0.1
@@ -161,7 +209,7 @@ function updateAxes(axes) {
     }
   });
 
-  // Joysticks zeichnen
+  // Joysticks
   drawJoystick('joystick-left',
     axes[0] || 0,
     axes[1] || 0
@@ -175,44 +223,42 @@ function updateAxes(axes) {
 // ─── Joystick zeichnen ────────────────────────────────
 
 function drawJoystick(canvasId, x, y) {
-  const canvas  = document.getElementById(canvasId);
+  const canvas = document.getElementById(canvasId);
   if (!canvas) return;
 
   const ctx     = canvas.getContext('2d');
-  const width   = canvas.width;
-  const height  = canvas.height;
-  const centerX = width  / 2;
-  const centerY = height / 2;
-  const radius  = (width  / 2) - 10;
+  const w       = canvas.width;
+  const h       = canvas.height;
+  const cx      = w / 2;
+  const cy      = h / 2;
+  const radius  = (w / 2) - 10;
   const dotR    = 12;
 
-  // Canvas leeren
-  ctx.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, w, h);
 
   // Äußerer Kreis
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.strokeStyle = '#30363d';
   ctx.lineWidth   = 2;
   ctx.stroke();
 
   // Kreuzlinien
   ctx.beginPath();
-  ctx.moveTo(centerX - radius, centerY);
-  ctx.lineTo(centerX + radius, centerY);
-  ctx.moveTo(centerX, centerY - radius);
-  ctx.lineTo(centerX, centerY + radius);
+  ctx.moveTo(cx - radius, cy);
+  ctx.lineTo(cx + radius, cy);
+  ctx.moveTo(cx, cy - radius);
+  ctx.lineTo(cx, cy + radius);
   ctx.strokeStyle = '#21262d';
   ctx.lineWidth   = 1;
   ctx.stroke();
 
-  // Joystick Position berechnen
-  const dotX = centerX + (x * radius);
-  const dotY = centerY + (y * radius);
+  // Linie Zentrum → Punkt
+  const dotX = cx + (x * radius);
+  const dotY = cy + (y * radius);
 
-  // Linie vom Zentrum zum Punkt
   ctx.beginPath();
-  ctx.moveTo(centerX, centerY);
+  ctx.moveTo(cx, cy);
   ctx.lineTo(dotX, dotY);
   ctx.strokeStyle = '#58a6ff55';
   ctx.lineWidth   = 2;
@@ -224,9 +270,9 @@ function drawJoystick(canvasId, x, y) {
   ctx.fillStyle = '#58a6ff';
   ctx.fill();
 
-  // Zentrum Punkt
+  // Zentrum
   ctx.beginPath();
-  ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
   ctx.fillStyle = '#30363d';
   ctx.fill();
 }
@@ -234,11 +280,11 @@ function drawJoystick(canvasId, x, y) {
 // ─── UI Elemente erstellen ────────────────────────────
 
 function createButtonElements(count) {
-  const grid = document.getElementById('buttons-grid');
+  const grid    = document.getElementById('buttons-grid');
   grid.innerHTML = '';
 
   for (let i = 0; i < count; i++) {
-    const name = BUTTON_NAMES[i] || `Btn ${i}`;
+    const name     = BUTTON_NAMES[i] || `Btn ${i}`;
     grid.innerHTML += `
       <div class="btn-item" id="btn-${i}">
         <div class="btn-number">#${i}</div>
@@ -250,11 +296,11 @@ function createButtonElements(count) {
 }
 
 function createAxesBars(count) {
-  const container = document.getElementById('axes-bars');
+  const container     = document.getElementById('axes-bars');
   container.innerHTML = '';
 
   for (let i = 0; i < count; i++) {
-    const name = AXIS_NAMES[i] || `Achse ${i}`;
+    const name          = AXIS_NAMES[i] || `Achse ${i}`;
     container.innerHTML += `
       <div class="axis-bar-row">
         <span class="axis-bar-label">${name}</span>
@@ -302,50 +348,20 @@ function hideCards() {
 function setStatus(connected, message) {
   document.getElementById('status-text')
           .textContent = message;
-
-  const dot = document.getElementById('status-dot');
-  dot.className = 'status-dot ' +
+  const dot       = document.getElementById('status-dot');
+  dot.className   = 'status-dot ' +
     (connected ? 'connected' : 'disconnected');
 }
 
 // ─── Log ──────────────────────────────────────────────
 
 function addLog(message) {
-  const log  = document.getElementById('log-box');
-  const time = new Date().toLocaleTimeString('de-DE');
+  const log      = document.getElementById('log-box');
+  const time     = new Date().toLocaleTimeString('de-DE');
   log.innerHTML += `[${time}] ${message}<br>`;
   log.scrollTop  = log.scrollHeight;
 }
 
 function clearLog() {
   document.getElementById('log-box').innerHTML = '';
-}
-
-// Füge das zu script.js hinzu!
-// Prüft ob bereits ein Controller
-// verbunden ist beim Laden der Seite
-
-window.addEventListener('load', () => {
-  // Kurz warten dann prüfen
-  setTimeout(checkForGamepads, 500);
-});
-
-function checkForGamepads() {
-  const gamepads = navigator.getGamepads();
-
-  gamepads.forEach((gp, index) => {
-    if (gp !== null) {
-      console.log('Controller gefunden:', gp.id);
-
-      // Gleiche Logik wie gamepadconnected Event
-      activeGamepad = gp.index;
-      showCards();
-      updateControllerInfo(gp);
-      createButtonElements(gp.buttons.length);
-      createAxesBars(gp.axes.length);
-      setStatus(true, `Verbunden: ${gp.id}`);
-      addLog(`✅ Controller gefunden: ${gp.id}`);
-      startGameLoop();
-    }
-  });
 }
