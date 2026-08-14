@@ -13,7 +13,7 @@ body {
 }
 
 .container {
-  max-width: 600px;
+  max-width: 650px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -21,10 +21,10 @@ body {
 }
 
 h1 {
-  color: #58a6ff;
   text-align: center;
+  color: #58a6ff;
   font-size: 2rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Karten */
@@ -41,65 +41,22 @@ h1 {
   font-size: 1.1rem;
 }
 
-/* Browser Warnung */
-.warning {
-  background: #3d2b00;
-  border: 1px solid #d29922;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  display: none;
-}
-
-/* Buttons */
-button {
-  width: 100%;
-  padding: 0.9rem;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
-  margin-bottom: 1rem;
-}
-
-button:hover   { opacity: 0.9; }
-button:active  { transform: scale(0.98); }
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-#connect-btn {
-  background: #238636;
-  color: white;
-}
-
-#connect-btn.connected {
-  background: #b62324;
-}
-
-.clear-btn {
-  background: #21262d;
-  color: #c9d1d9;
-  margin-bottom: 0;
-}
+.hidden { display: none; }
 
 /* Status */
-.status {
+.status-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
+  gap: 10px;
+  margin-bottom: 0.5rem;
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: #6e7681;
-  transition: background 0.3s;
+  flex-shrink: 0;
 }
 
 .status-dot.connected {
@@ -107,73 +64,195 @@ button:disabled {
   animation: pulse 2s infinite;
 }
 
-.status-dot.error {
+.status-dot.disconnected {
   background: #f85149;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 #3fb95055; }
+  50%       { opacity: 0.8; box-shadow: 0 0 0 6px #3fb95000; }
 }
 
-/* Sensor Grid */
-.sensor-grid {
+.hint {
+  color: #8b949e;
+  font-size: 0.85rem;
+}
+
+/* Controller Info */
+.info-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
-.sensor-item {
+.info-item {
   background: #0d1117;
   border: 1px solid #30363d;
-  border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
+  border-radius: 10px;
+  padding: 0.8rem;
 }
 
-.sensor-icon  { font-size: 1.8rem; margin-bottom: 0.3rem; }
-.sensor-label { font-size: 0.75rem; color: #8b949e; }
+.info-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #8b949e;
+  margin-bottom: 0.3rem;
+}
 
-.sensor-value {
-  font-size: 1.8rem;
-  font-weight: bold;
+.info-value {
+  font-size: 1rem;
   color: #58a6ff;
-  margin: 0.3rem 0;
+  font-weight: bold;
+  word-break: break-all;
 }
 
-.sensor-unit  { font-size: 0.8rem; color: #8b949e; }
+/* Buttons Grid */
+.buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.7rem;
+}
 
-/* Serial Monitor */
-.serial-log {
+.btn-item {
+  background: #0d1117;
+  border: 2px solid #30363d;
+  border-radius: 10px;
+  padding: 0.7rem 0.3rem;
+  text-align: center;
+  transition: all 0.1s;
+}
+
+.btn-item.pressed {
+  background: #58a6ff;
+  border-color: #58a6ff;
+  color: #0d1117;
+  transform: scale(0.95);
+}
+
+.btn-number {
+  font-size: 0.7rem;
+  color: #8b949e;
+  margin-bottom: 0.2rem;
+}
+
+.btn-item.pressed .btn-number {
+  color: #0d1117;
+}
+
+.btn-name {
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.btn-value {
+  font-size: 0.7rem;
+  color: #8b949e;
+  margin-top: 0.2rem;
+}
+
+.btn-item.pressed .btn-value {
+  color: #0d1117;
+}
+
+/* Joystick */
+.joystick-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.joystick-label {
+  font-size: 0.85rem;
+  color: #8b949e;
+  width: 40px;
+}
+
+.joystick-container canvas {
+  border: 2px solid #30363d;
+  border-radius: 50%;
+  background: #0d1117;
+}
+
+.axis-values {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+.axis-values b {
+  color: #58a6ff;
+}
+
+/* Achsen Balken */
+.axes-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.axis-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.axis-bar-label {
+  font-size: 0.8rem;
+  color: #8b949e;
+  width: 55px;
+  flex-shrink: 0;
+}
+
+.axis-bar-track {
+  flex: 1;
+  height: 8px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.axis-bar-fill {
+  position: absolute;
+  height: 100%;
+  background: #58a6ff;
+  border-radius: 4px;
+  transition: all 0.05s;
+  top: 0;
+  left: 50%;
+  width: 0;
+}
+
+/* Log */
+.log-box {
   background: #0d1117;
   border: 1px solid #30363d;
   border-radius: 8px;
   padding: 1rem;
-  height: 200px;
+  height: 150px;
   overflow-y: auto;
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #3fb950;
   margin-bottom: 1rem;
 }
 
-/* QR Code */
-#qrcode {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-#qrcode canvas,
-#qrcode img {
+/* Clear Button */
+.clear-btn {
+  width: 100%;
+  padding: 0.7rem;
+  background: #21262d;
+  color: #c9d1d9;
+  border: none;
   border-radius: 8px;
-  padding: 10px;
-  background: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
 }
 
-#page-url {
-  text-align: center;
-  font-size: 0.75rem;
-  color: #8b949e;
-  word-break: break-all;
-}
+.clear-btn:hover { opacity: 0.8; }
