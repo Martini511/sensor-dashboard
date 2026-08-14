@@ -256,3 +256,56 @@ h1 {
 }
 
 .clear-btn:hover { opacity: 0.8; }
+
+/* In style.css hinzufügen */
+
+.controller-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.ctrl-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+  margin-right: 1rem;
+}
+
+.ctrl-item-index {
+  font-size: 0.75rem;
+  color: #8b949e;
+}
+
+.ctrl-item-name {
+  font-size: 0.85rem;
+  color: #c9d1d9;
+  word-break: break-all;
+}
+
+.ctrl-item-details {
+  font-size: 0.75rem;
+  color: #8b949e;
+}
+
+.select-btn {
+  background: #238636;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  width: auto;
+}
+
+.select-btn:hover {
+  background: #2ea043;
+}
