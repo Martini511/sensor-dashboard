@@ -1,0 +1,67 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.container {
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #58a6ff;
+  margin-bottom: 1rem;
+}
+
+p {
+  color: #8b949e;
+  margin-bottom: 2rem;
+}
+
+.qr-section {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.qr-section h2 {
+  color: #58a6ff;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+}
+
+/* QR-Code zentrieren */
+#qrcode {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+#qrcode canvas,
+#qrcode img {
+  border-radius: 8px;
+  padding: 10px;
+  background: white;
+}
+
+#page-url {
+  font-size: 0.75rem;
+  color: #8b949e;
+  word-break: break-all;
+}
