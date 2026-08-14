@@ -24,31 +24,46 @@ window.addEventListener('gamepaddisconnected', (event) => {
 
 // ─── Alle Controller anzeigen zur Auswahl ─────────────
 
+// ─── Aktiv nach Gamepads suchen ───────────────────────
+
+// Geräte die ignoriert werden sollen
+const IGNORED_DEVICES = [
+  'HP E27m',      // HP Monitor
+  'USB Audio',    // Audio Geräte
+  'Audio',        // Weitere Audio
+  'Monitor',      // Monitore
+];
+
 function scanForGamepads() {
   const gamepads = navigator.getGamepads();
   const found    = [];
 
   for (let i = 0; i < gamepads.length; i++) {
     const gp = gamepads[i];
-    if (gp !== null) {
-      found.push(gp);
+    if (gp === null) continue;
+
+    // Prüfen ob Gerät ignoriert werden soll
+    const shouldIgnore = IGNORED_DEVICES.some(
+      keyword => gp.id.includes(keyword)
+    );
+
+    if (shouldIgnore) {
+      console.log('Ignoriere Gerät:', gp.id);
+      continue;
     }
+
+    // Gerät hinzufügen
+    found.push(gp);
+    console.log('Controller gefunden:', gp.id);
   }
 
   if (found.length === 0) {
-    // Kein Controller gefunden
     setStatus(false, 'Kein Controller gefunden');
     return;
   }
 
-  if (found.length === 1) {
-    // Nur ein Controller → direkt verbinden
-    initController(found[0]);
-    return;
-  }
-
-  // Mehrere Controller → Auswahl anzeigen!
-  showControllerSelection(found);
+  // Ersten gültigen Controller nehmen
+  initController(found[0]);
 }
 
 // ─── Auswahl Dialog ───────────────────────────────────
