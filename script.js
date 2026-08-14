@@ -320,3 +320,32 @@ function addLog(message) {
 function clearLog() {
   document.getElementById('log-box').innerHTML = '';
 }
+
+// Füge das zu script.js hinzu!
+// Prüft ob bereits ein Controller
+// verbunden ist beim Laden der Seite
+
+window.addEventListener('load', () => {
+  // Kurz warten dann prüfen
+  setTimeout(checkForGamepads, 500);
+});
+
+function checkForGamepads() {
+  const gamepads = navigator.getGamepads();
+
+  gamepads.forEach((gp, index) => {
+    if (gp !== null) {
+      console.log('Controller gefunden:', gp.id);
+
+      // Gleiche Logik wie gamepadconnected Event
+      activeGamepad = gp.index;
+      showCards();
+      updateControllerInfo(gp);
+      createButtonElements(gp.buttons.length);
+      createAxesBars(gp.axes.length);
+      setStatus(true, `Verbunden: ${gp.id}`);
+      addLog(`✅ Controller gefunden: ${gp.id}`);
+      startGameLoop();
+    }
+  });
+}
