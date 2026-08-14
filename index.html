@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
@@ -8,18 +9,73 @@
 <body>
 
   <div class="container">
-    <h1>👋 Hallo!</h1>
-    <p>Diese Seite wurde über einen QR-Code geöffnet.</p>
+    <h1>📡 Sensor Dashboard</h1>
 
-    <!-- QR-Code der aktuellen Seite -->
-    <div class="qr-section">
+    <!-- Verbindung -->
+    <div class="card">
+      <h2>🔌 USB Verbindung</h2>
+      
+      <!-- Browser Warnung -->
+      <div class="warning" id="browser-warning">
+        ⚠️ Dein Browser unterstützt kein WebSerial!
+        <br>Bitte Chrome oder Edge verwenden.
+      </div>
+
+      <!-- Verbindungs Button -->
+      <button id="connect-btn" onclick="connectSerial()">
+        🔌 Mit Board verbinden
+      </button>
+
+      <!-- Status -->
+      <div class="status" id="status">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">Nicht verbunden</span>
+      </div>
+    </div>
+
+    <!-- Sensordaten -->
+    <div class="card" id="data-card">
+      <h2>📊 Sensordaten</h2>
+      <div class="sensor-grid">
+        <div class="sensor-item">
+          <div class="sensor-icon">🌡️</div>
+          <div class="sensor-label">Temperatur</div>
+          <div class="sensor-value" id="temp">--</div>
+          <div class="sensor-unit">°C</div>
+        </div>
+        <div class="sensor-item">
+          <div class="sensor-icon">💧</div>
+          <div class="sensor-label">Luftfeuchtigkeit</div>
+          <div class="sensor-value" id="hum">--</div>
+          <div class="sensor-unit">%</div>
+        </div>
+        <div class="sensor-item">
+          <div class="sensor-icon">☀️</div>
+          <div class="sensor-label">Helligkeit</div>
+          <div class="sensor-value" id="light">--</div>
+          <div class="sensor-unit">lux</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Serial Monitor -->
+    <div class="card">
+      <h2>🖥️ Serial Monitor</h2>
+      <div class="serial-log" id="serial-log"></div>
+      <button class="clear-btn" onclick="clearLog()">
+        🗑️ Log leeren
+      </button>
+    </div>
+
+    <!-- QR Code -->
+    <div class="card">
       <h2>QR-Code dieser Seite</h2>
       <div id="qrcode"></div>
       <p id="page-url"></p>
     </div>
+
   </div>
 
-  <!-- QR-Code Bibliothek -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js">
   </script>
   <script src="script.js"></script>
